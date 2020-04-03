@@ -5,12 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
@@ -143,7 +138,7 @@ public class ModelProcess {
 				abstractQuery += "ng ";
 				abstractMap.put("ng", word);
 			}
-			else if (termStr.contains("noc")) { //ng 类型
+			else if (termStr.contains("noc")) { //noc 公司名
 				abstractQuery += "noc ";
 				abstractMap.put("noc", word);
 			}
@@ -263,9 +258,11 @@ public class ModelProcess {
 			 */
 			if (vocabulary.containsKey(word)) {
 				int index = vocabulary.get(word);
+				//System.out.print(word);
 				vector[index] = 1;
 			}
 		}
+		//System.out.println(Arrays.toString(vector));
 		return vector;
 	}
 
@@ -484,13 +481,37 @@ public class ModelProcess {
 				LabeledPoint train_one = new LabeledPoint(0.0, Vectors.dense(array));
 				train_list.add(train_one);
 			}
-			
-			/**
-			 * SPARK的核心是RDD(弹性分布式数据集)
-			 * Spark是Scala写的,JavaRDD就是Spark为Java写的一套API
-			 * JavaSparkContext sc = new JavaSparkContext(sparkConf);    //对应JavaRDD
-			 * SparkContext	    sc = new SparkContext(sparkConf)    ;    //对应RDD
-			 */
+
+			String companyInfoQuestion = loadFile("question/【1】公司信息.txt");
+			sentences = companyInfoQuestion.split("`");
+			for (String sentence : sentences) {
+				double[] array = sentenceToArrays(sentence);
+				LabeledPoint train_one = new LabeledPoint(1.0, Vectors.dense(array));
+				train_list.add(train_one);
+			}
+
+			String companyEnglishNameQuestion = loadFile("question/【2】公司英文名.txt");
+			sentences = companyEnglishNameQuestion.split("`");
+			for (String sentence : sentences) {
+				double[] array = sentenceToArrays(sentence);
+				LabeledPoint train_one = new LabeledPoint(2.0, Vectors.dense(array));
+				train_list.add(train_one);
+			}
+
+			String companyPersonQuestion = loadFile("question/【3】公司高管.txt");
+			sentences = companyPersonQuestion.split("`");
+			for (String sentence : sentences) {
+				double[] array = sentenceToArrays(sentence);
+				LabeledPoint train_one = new LabeledPoint(3.0, Vectors.dense(array));
+				train_list.add(train_one);
+			}
+
+		/**
+         * SPARK的核心是RDD(弹性分布式数据集)
+         * Spark是Scala写的,JavaRDD就是Spark为Java写的一套API
+         * JavaSparkContext sc = new JavaSparkContext(sparkConf);    //对应JavaRDD
+         * SparkContext	    sc = new SparkContext(sparkConf)    ;    //对应RDD
+         */
 			JavaRDD<LabeledPoint> trainingRDD = sc.parallelize(train_list);
 			NaiveBayesModel nb_model = NaiveBayes.train(trainingRDD.rdd());
 			
@@ -545,7 +566,8 @@ public class ModelProcess {
 		
 		double[] testArray = sentenceToArrays(sentence);
 		Vector v = Vectors.dense(testArray);
-		
+		System.out.println(v.toString());
+
 		/**
 		 * 对数据进行预测predict
 		 * 句子模板在 spark贝叶斯分类器中的索引【位置】
@@ -556,7 +578,9 @@ public class ModelProcess {
 		System.out.println("the model index is " + index);	
 //		Vector vRes = nbModel.predictProbabilities(v);
 //		System.out.println("问题模板分类【0】概率："+vRes.toArray()[0]);
-//		System.out.println("问题模板分类【13】概率："+vRes.toArray()[13]);
+//		System.out.println("问题模板分类【1】概率："+vRes.toArray()[1]);
+//		System.out.println("问题模板分类【2】概率："+vRes.toArray()[2]);
+
 		return questionsPattern.get(index);
 	}
 

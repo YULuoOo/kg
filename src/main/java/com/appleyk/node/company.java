@@ -1,9 +1,12 @@
 package com.appleyk.node;
 
 import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.annotation.Relationship;
+
+import java.util.List;
 
 @NodeEntity
-public class Company extends BaseEntity{
+public class company extends BaseEntity{
 
 
 
@@ -33,7 +36,10 @@ public class Company extends BaseEntity{
     private String c_product_type;
     private String c_website;
 
-    public Company() {
+    @Relationship(type="work_in", direction=Relationship.INCOMING)
+    private List<person> persons;
+
+    public company() {
 
     }
 
@@ -236,5 +242,13 @@ public class Company extends BaseEntity{
 
     public void setC_website(String c_website) {
         this.c_website = c_website;
+    }
+
+    public List<person> getPersons() {
+        return persons;
+    }
+
+    public void setPersons(List<person> persons) {
+        this.persons = persons;
     }
 }

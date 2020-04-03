@@ -77,14 +77,14 @@ public class QuestionServiceImpl implements QuestionService {
 	}
 
 	@Override
-	public String answer2(String question) throws Exception {
+	public Object answer2(String question) throws Exception {
 
 		if(queryProcess == null){
 			this.init();
 		}
 		ArrayList<String> reStrings = queryProcess.analyQuery(question);
 		int modelIndex = Integer.valueOf(reStrings.get(0));
-		String answer = null;
+		Object answer = null;
 		String title = "";
 		String code = "";
 		/**
@@ -97,19 +97,29 @@ public class QuestionServiceImpl implements QuestionService {
 				 */
 				title = reStrings.get(1);
 				System.out.println(title);
-				code = companyRepository.getCompanyCode(title);
-				if (code != null) {
-					answer = code;
-				} else {
-					answer = null;
-				}
+				answer = companyRepository.getCompanyCode(title);
+				break;
+			case 1:
+				title = reStrings.get(1);
+				System.out.println(title);
+				answer = companyRepository.getCompanyInfo(title);
+				break;
+			case 2:
+				title = reStrings.get(1);
+				System.out.println(title);
+				answer = companyRepository.getCompanyEngName(title);
+				break;
+			case 3:
+				title = reStrings.get(1);
+				System.out.println(title);
+				answer = companyRepository.getCompanyPersons(title);
 				break;
 			default:
 				break;
 		}
 
-		System.out.println(answer);
 		if (answer != null && !answer.equals("") && !answer.equals("\\N")) {
+			System.out.println(answer.toString());
 			return answer;
 		} else {
 			return "sorry,我没有找到你要的答案";
@@ -430,6 +440,9 @@ public class QuestionServiceImpl implements QuestionService {
 				case 2:
 					CustomDictionary.add(word, "x 0");
 					break;
+				/**
+				 * 设置公司名词 词性 == noc 0
+				 */
 				case 4:
 					CustomDictionary.add(word, "noc 0");
 					break;

@@ -1,6 +1,6 @@
 package com.appleyk.repository;
 
-import com.appleyk.node.Movie;
+import com.appleyk.node.company;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.repository.query.Param;
@@ -14,7 +14,7 @@ import java.util.List;
  * @blob   http://blog.csdn.net/appleyk
  * @date   2018年5月10日-下午3:48:51
  */
-public interface QuestionRepository extends Neo4jRepository<Movie,Long> {
+public interface QuestionRepository extends Neo4jRepository<company,Long> {
 
 	/**
 	 * 0 对应问题模板0 == nm(电影) 评分
