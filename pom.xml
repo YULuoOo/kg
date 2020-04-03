@@ -21,6 +21,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.2.41</version>
+		</dependency>
 		<!-- 添加热部署 devtools：监听文件变动 -->
 		<!-- 当Java文件改动时，Spring-boo会快速重新启动 -->
 		<!-- 最简单的测试，就是随便找一个文件Ctrl+S一下，就可以看到效果 -->

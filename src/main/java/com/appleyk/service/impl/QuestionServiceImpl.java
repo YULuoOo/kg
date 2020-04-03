@@ -7,8 +7,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import com.appleyk.node.person;
 import com.appleyk.repository.CompanyRepository;
 import com.appleyk.repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +79,63 @@ public class QuestionServiceImpl implements QuestionService {
 	}
 
 	@Override
-	public Object answer2(String question) throws Exception {
+	public List<String> answer2(String question) throws Exception {
+
+		if(queryProcess == null){
+			this.init();
+		}
+		ArrayList<String> reStrings = queryProcess.analyQuery(question);
+		int modelIndex = Integer.valueOf(reStrings.get(0));
+		List<String> answer = new ArrayList();
+		String title = "";
+		String code = "";
+		/**
+		 * 匹配问题模板
+		 */
+		switch (modelIndex) {
+			case 0:
+				/**
+				 * nof 的 代码
+				 */
+				title = reStrings.get(1);
+				System.out.println(title);
+				answer.add(companyRepository.getCompanyCode(title));
+				break;
+			case 1:
+				title = reStrings.get(1);
+				System.out.println(title);
+				answer.add(companyRepository.getCompanyInfo(title).toString());
+				break;
+			case 2:
+				title = reStrings.get(1);
+				System.out.println(title);
+				answer.add(companyRepository.getCompanyEngName(title));
+				break;
+			case 3:
+				title = reStrings.get(1);
+				System.out.println(title);
+				List<person> ret = companyRepository.getCompanyPersons(title);
+
+				for (person per:ret) {
+					answer.add(per.getP_name());
+				}
+				answer.add(title);
+				answer.add("work_in");
+				answer.add("to");
+				break;
+			default:
+				break;
+		}
+
+		if (answer != null && !answer.equals("") && !answer.equals("\\N")) {
+			System.out.println(answer.toString());
+			return answer;
+		} else {
+			return Collections.singletonList("sorry,我没有找到你要的答案");
+		}
+	}
+	@Override
+	public Object answer3(String question) throws Exception {
 
 		if(queryProcess == null){
 			this.init();
@@ -91,28 +149,14 @@ public class QuestionServiceImpl implements QuestionService {
 		 * 匹配问题模板
 		 */
 		switch (modelIndex) {
-			case 0:
-				/**
-				 * nof 的 代码
-				 */
-				title = reStrings.get(1);
-				System.out.println(title);
-				answer = companyRepository.getCompanyCode(title);
-				break;
-			case 1:
-				title = reStrings.get(1);
-				System.out.println(title);
-				answer = companyRepository.getCompanyInfo(title);
-				break;
-			case 2:
-				title = reStrings.get(1);
-				System.out.println(title);
-				answer = companyRepository.getCompanyEngName(title);
-				break;
 			case 3:
 				title = reStrings.get(1);
 				System.out.println(title);
-				answer = companyRepository.getCompanyPersons(title);
+				List<person> ret = companyRepository.getCompanyPersons(title);
+				List<String> names = null;
+				for (person per:ret) {
+					names.add(per.getP_name());
+				}
 				break;
 			default:
 				break;
@@ -125,7 +169,6 @@ public class QuestionServiceImpl implements QuestionService {
 			return "sorry,我没有找到你要的答案";
 		}
 	}
-
 	@Override
 	public String answer(String question) throws Exception {
 

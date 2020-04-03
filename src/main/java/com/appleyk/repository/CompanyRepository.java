@@ -2,6 +2,7 @@ package com.appleyk.repository;
 
 import com.appleyk.node.company;
 import com.appleyk.node.person;
+import com.appleyk.relationship.work_in;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.repository.query.Param;
@@ -23,5 +24,8 @@ public interface CompanyRepository extends Neo4jRepository<company,Long> {
 	List<company> getCompanyInfo(@Param("name") String name);
 
 	@Query("MATCH p=(a:person)-[r:work_in]->(n:company) where n.c_name={name} RETURN a")
-	List<Object> getCompanyPersons(@Param("name") String name);
+	List<person> getCompanyPersons(@Param("name") String name);
+
+	@Query("MATCH p=(a:person)-[r:work_in]->(n:company) where n.c_name={name} RETURN r")
+	List<work_in> getCompanyPersonsEdge(@Param("name") String name);
 }

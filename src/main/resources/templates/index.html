@@ -218,27 +218,33 @@
                 var data = {}
                 $.ajax({
                     type: "POST",
-                    dataType: "json",
+                    dataType: "text",
                     async:false,
                     url : '/rest/appleyk/question/node',
                     data: data.field,
                     success: function(ret){
                         console.log(ret);
-                        data.nodes = ret;
+                        data.nodes = JSON.parse(ret);
                         st1 = true;
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown){
+                        alert(XMLHttpRequest.readyState + XMLHttpRequest.status + XMLHttpRequest.responseText);
                     }
-                });
+                })
 
                 $.ajax({
                     type: "POST",
-                    dataType: "json",
+                    dataType: "text",
                     async:false,
-                    url : '/rest/appleyk/question/edge',
+				    url : '/rest/appleyk/question/edge',
                     data: data.field,
-                    success : function(res) {
+                    success: function(res){
                         console.log(res);
-                        data.links = res;
+                        data.links = JSON.parse(res);
                         st2 = true;
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown){
+                        alert(XMLHttpRequest.readyState + XMLHttpRequest.status + XMLHttpRequest.responseText);
                     }
                 })
                 //data.nodes = JSON.parse(document.getElementById("t1").value);
@@ -256,7 +262,9 @@
                     height: document.getElementById("container").clientHeight
                 }
                 if(st1 && st2){
-                    console.log(data);
+                    console.log(data.nodes);
+                    console.log(data.links);
+
                     st1 = false;
                     st2 = false;
                     initKG(data, config, "#container");
