@@ -6,14 +6,18 @@ initKG = function (data, config, container) {
 
     var nodes = {};
 
-
+        if(links!=null && links.size>=1){
         links.forEach(function (link) {
             //利用source和target名称进行连线以及节点的确认
             link.source = nodeDict[link.source]
             nodes[link.source.name] = link.source
             link.target = nodeDict[link.target]
             nodes[link.target.name] = link.target
-        });
+        });}
+        else {
+            console.log("only nodes");
+            nodes = nodeDict;
+        }
 
 
     //默认的节点配色方案

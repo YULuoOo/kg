@@ -230,7 +230,8 @@
 
                         data.nodes = ret.nodes;
                         data.links = ret.edges;
-
+                        if(data.links == null)
+                            data.links = {}
                         st1 = true;
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown){
