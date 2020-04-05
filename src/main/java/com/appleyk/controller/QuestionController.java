@@ -79,8 +79,8 @@ public class QuestionController {
 		System.out.println(edges);
 
 		JSONObject json = new JSONObject();
-		json.put("nodes", nodes.toString());
-		json.put("edges", edges.toString());
+		json.put("nodes", JSON.parse(nodes.toString()));
+		json.put("edges", JSON.parse(edges.toString()));
 		System.out.println(json);
 
 		return json;

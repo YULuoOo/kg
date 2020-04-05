@@ -64,7 +64,7 @@
         margin-left: 4rem;width: 26rem
     ">
             <li class="active">
-                <div class="collapsible-header active">节点数据</div>
+                <div class="collapsible-header active">问题查询</div>
                 <div class="collapsible-body" style="display: block;">
                     <div class="row">
                         <form class="col s12">
@@ -218,13 +218,19 @@
                 var data = {}
                 $.ajax({
                     type: "POST",
-                    dataType: "text",
+                    dataType: "json",
                     async:false,
-                    url : '/rest/appleyk/question/node',
+                    url : '/rest/appleyk/question/query2?question='+document.getElementById("t1").value,
                     data: data.field,
                     success: function(ret){
                         console.log(ret);
-                        data.nodes = JSON.parse(ret);
+
+                        console.log(ret.nodes);
+                        console.log(ret.edges);
+
+                        data.nodes = ret.nodes;
+                        data.links = ret.edges;
+
                         st1 = true;
                     },
                     error: function(XMLHttpRequest, textStatus, errorThrown){
@@ -232,21 +238,21 @@
                     }
                 })
 
-                $.ajax({
-                    type: "POST",
-                    dataType: "text",
-                    async:false,
-				    url : '/rest/appleyk/question/edge',
-                    data: data.field,
-                    success: function(res){
-                        console.log(res);
-                        data.links = JSON.parse(res);
-                        st2 = true;
-                    },
-                    error: function(XMLHttpRequest, textStatus, errorThrown){
-                        alert(XMLHttpRequest.readyState + XMLHttpRequest.status + XMLHttpRequest.responseText);
-                    }
-                })
+<!--                $.ajax({-->
+<!--                    type: "POST",-->
+<!--                    dataType: "text",-->
+<!--                    async:false,-->
+<!--				    url : '/rest/appleyk/question/edge',-->
+<!--                    data: data.field,-->
+<!--                    success: function(res){-->
+<!--                        console.log(res);-->
+<!--                        data.links = JSON.parse(res);-->
+<!--                        st2 = true;-->
+<!--                    },-->
+<!--                    error: function(XMLHttpRequest, textStatus, errorThrown){-->
+<!--                        alert(XMLHttpRequest.readyState + XMLHttpRequest.status + XMLHttpRequest.responseText);-->
+<!--                    }-->
+<!--                })-->
                 //data.nodes = JSON.parse(document.getElementById("t1").value);
                 //data.links = JSON.parse(document.getElementById("t2").value);
                 //console.log(JSON.parse(t1_text));
@@ -261,12 +267,12 @@
                     width: document.getElementById("container").clientWidth,
                     height: document.getElementById("container").clientHeight
                 }
-                if(st1 && st2){
+                if(st1){
                     console.log(data.nodes);
                     console.log(data.links);
 
                     st1 = false;
-                    st2 = false;
+<!--                    st2 = false;-->
                     initKG(data, config, "#container");
                 }
             } catch (err) {
@@ -274,7 +280,7 @@
                 Materialize.toast('渲染存在异常', 2000)
             }
         }
-        render();
+        //render();
 
     </script>
 
