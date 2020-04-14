@@ -6,7 +6,9 @@ initKG = function (data, config, container) {
 
     var nodes = {};
 
-        if(links!=null){
+        if(links!=null && links.length >= 1){
+                    console.log("111");
+
         links.forEach(function (link) {
             //利用source和target名称进行连线以及节点的确认
             link.source = nodeDict[link.source]

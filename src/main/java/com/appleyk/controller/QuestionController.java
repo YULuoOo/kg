@@ -1,13 +1,17 @@
 package com.appleyk.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.appleyk.node.BaseEntity;
 import com.appleyk.node.company;
+import com.appleyk.node.person;
+import com.appleyk.relationship.work_in;
 import com.appleyk.repository.CompanyRepository;
 import com.appleyk.repository.QuestionRepository;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import org.json4s.jackson.Json;
+import org.codehaus.jackson.map.Serializers;
 import org.mortbay.util.ajax.JSON;
+import org.neo4j.driver.v1.*;
+import org.neo4j.driver.v1.types.Node;
+import org.neo4j.driver.v1.types.Relationship;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,15 +19,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.appleyk.service.QuestionService;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.annotation.Resource;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
-import static org.apache.arrow.flatbuf.Type.Map;
+import static org.neo4j.driver.v1.Values.parameters;
 
 @RestController
 @RequestMapping("/rest/appleyk/question")
 public class QuestionController {
-	
+	@Autowired
+	private Session session;
+
 	@Autowired
 	QuestionService questService;
 
@@ -48,6 +57,61 @@ public class QuestionController {
 		String ret = "[{ \"source\":1, \"target\": 16, \"rela\": \"work_in\",\"type\": \"1\"},{ \"source\":2, \"target\": 16, \"rela\": \"work_in\",\"type\": \"1\"},{ \"source\":3, \"target\": 16, \"rela\": \"work_in\",\"type\": \"1\"},{ \"source\":4, \"target\": 16, \"rela\": \"work_in\",\"type\": \"1\"},{ \"source\":5, \"target\": 16, \"rela\": \"work_in\",\"type\": \"1\"},{ \"source\":6, \"target\": 16, \"rela\": \"work_in\",\"type\": \"1\"},{ \"source\":7, \"target\": 16, \"rela\": \"work_in\",\"type\": \"1\"},{ \"source\":8, \"target\": 16, \"rela\": \"work_in\",\"type\": \"1\"},{ \"source\":9, \"target\": 16, \"rela\": \"work_in\",\"type\": \"1\"},{ \"source\":10, \"target\": 16, \"rela\": \"work_in\",\"type\": \"1\"},{ \"source\":11, \"target\": 16, \"rela\": \"work_in\",\"type\": \"1\"},{ \"source\":12, \"target\": 16, \"rela\": \"work_in\",\"type\": \"1\"},{ \"source\":13, \"target\": 16, \"rela\": \"work_in\",\"type\": \"1\"},{ \"source\":14, \"target\": 16, \"rela\": \"work_in\",\"type\": \"1\"},{ \"source\":15, \"target\": 16, \"rela\": \"work_in\",\"type\": \"1\"}]";
 		System.out.println(ret);
 		return ret;
+	}
+
+	@RequestMapping("/driver")
+	public void driver(@RequestParam(value = "question") String question) throws Exception {
+		String cypherSql = String.format("MATCH p=(a:person)-[r:work_in]->(n:company) where n.c_name= \"%s\" RETURN a,r,n",question);
+		StatementResult result = session.run(cypherSql);
+
+		while (result.hasNext()) {
+			Record record = result.next();
+			for (Value value : record.values()) {
+				System.out.println(value.toString());
+				/**
+				 * 结果里面只要类型为节点的值
+				 */
+				if (value.type().name().equals("NODE")) {
+					Node noe4jNode = value.asNode();
+					BaseEntity c;
+					Collection<String> labels = (Collection<String>) noe4jNode.labels();
+					if(labels.contains("company")) {
+						 c = new company();
+					} else {
+						 c = new person();
+					}
+					c.setProperties(noe4jNode.asMap());
+					Map<String, Object> map = c.getProperties();
+					Set<String> keySet = map.keySet();
+					Iterator<String> it1 = keySet.iterator();
+					while (it1.hasNext()) {
+						String ID = it1.next();
+						String val = (String) map.get(ID);
+						System.out.println(ID + " " + val);
+					}
+				}
+				else if(value.type().name().equals("RELATIONSHIP")) {
+					Relationship noe4jEdge = value.asRelationship();
+					work_in c = new work_in();
+					c.setProperties(noe4jEdge.asMap());
+					Map<String, Object> map = c.getProperties();
+					Set<String> keySet = map.keySet();
+					Iterator<String> it1 = keySet.iterator();
+					while (it1.hasNext()) {
+						String ID = it1.next();
+						String val = (String) map.get(ID);
+						System.out.println(ID + " " + val);
+					}
+				}
+			}
+		}
+	}
+
+	@RequestMapping("/d")
+	public JSONObject d(@RequestParam(value = "question") String question) throws Exception {
+		JSONObject answer = questService.driver(question);
+		System.out.println(answer.toJSONString());
+		return answer;
 	}
 
 	@RequestMapping("/query2")

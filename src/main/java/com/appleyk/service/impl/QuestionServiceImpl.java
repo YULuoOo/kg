@@ -10,8 +10,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.alibaba.fastjson.JSONObject;
 import com.appleyk.node.person;
 import com.appleyk.repository.CompanyRepository;
+import com.appleyk.repository.Driver;
 import com.appleyk.repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,6 +48,9 @@ public class QuestionServiceImpl implements QuestionService {
 
 	@Autowired
 	private CompanyRepository companyRepository;
+
+	@Autowired
+	private Driver driver;
 
 	private ModelProcess queryProcess;
 
@@ -135,39 +140,49 @@ public class QuestionServiceImpl implements QuestionService {
 		}
 	}
 	@Override
-	public Object answer3(String question) throws Exception {
+	public JSONObject driver(String question) throws Exception {
 
 		if(queryProcess == null){
 			this.init();
 		}
 		ArrayList<String> reStrings = queryProcess.analyQuery(question);
 		int modelIndex = Integer.valueOf(reStrings.get(0));
-		Object answer = null;
+		JSONObject answer = new JSONObject();
 		String title = "";
 		String code = "";
 		/**
 		 * 匹配问题模板
 		 */
 		switch (modelIndex) {
+			case 0:
+				/**
+				 * nof 的 代码
+				 */
+				title = reStrings.get(1);
+				System.out.println(title);
+				answer = driver.get_code(title);
+				break;
+//			case 1:
+//				title = reStrings.get(1);
+//				System.out.println(title);
+//				answer.add(companyRepository.getCompanyInfo(title).toString());
+//				break;
+//			case 2:
+//				title = reStrings.get(1);
+//				System.out.println(title);
+//				answer.add(companyRepository.getCompanyEngName(title));
+//				break;
 			case 3:
 				title = reStrings.get(1);
 				System.out.println(title);
-				List<person> ret = companyRepository.getCompanyPersons(title);
-				List<String> names = null;
-				for (person per:ret) {
-					names.add(per.getP_name());
-				}
+				answer = driver.work_in(title);
 				break;
 			default:
 				break;
 		}
 
-		if (answer != null && !answer.equals("") && !answer.equals("\\N")) {
-			System.out.println(answer.toString());
-			return answer;
-		} else {
-			return "sorry,我没有找到你要的答案";
-		}
+		System.out.println(answer.toString());
+		return answer;
 	}
 	@Override
 	public String answer(String question) throws Exception {
@@ -403,7 +418,7 @@ public class QuestionServiceImpl implements QuestionService {
 
 	/**
 	 * 加载自定义电影字典
-	 * 
+	 *
 	 * @param path
 	 */
 	public void loadMovieDict(String path) {
@@ -421,7 +436,7 @@ public class QuestionServiceImpl implements QuestionService {
 
 	/**
 	 * 加载自定义电影类别字典
-	 * 
+	 *
 	 * @param path
 	 */
 	public void loadGenreDict(String path) {
@@ -438,7 +453,7 @@ public class QuestionServiceImpl implements QuestionService {
 
 	/**
 	 * 加载自定义电影评分字典
-	 * 
+	 *
 	 * @param path
 	 */
 	public void loadScoreDict(String path) {
@@ -455,7 +470,7 @@ public class QuestionServiceImpl implements QuestionService {
 
 	/**
 	 * 添加自定义分词及其词性，注意数字0表示频率，不能没有
-	 * 
+	 *
 	 * @param br
 	 * @param type
 	 */
