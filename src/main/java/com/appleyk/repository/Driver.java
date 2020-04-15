@@ -71,7 +71,52 @@ public class Driver {
         return obj;
     }
 
-    public JSONObject get_code(String question) throws Exception {
+    public JSONObject addNode(JSONObject nodes,Value value,String name,String type){
+        Node noe4jNode = value.asNode();
+        BaseEntity c = new company();
+        c.setProperties(noe4jNode.asMap());
+        Map<String, Object> map = c.getProperties();
+        Set<String> keySet = map.keySet();
+        JSONObject node = new JSONObject();
+        Iterator<String> it1 = keySet.iterator();
+        while (it1.hasNext()) {
+            String ID = it1.next();
+            String val = (String) map.get(ID);
+            if(ID.equals(name))
+                node.put("name",val);
+            node.put(ID,val);
+            System.out.println(ID + " " + val);
+        }
+        node.put("type",type);
+        node.put("id",String.valueOf(noe4jNode.id()));
+        nodes.put(String.valueOf(noe4jNode.id()),node);
+        return node;
+    }
+
+    public JSONObject addEdge(JSONArray edges,Value value,String name,JSONObject from,JSONObject to){
+        Relationship noe4jEdge = value.asRelationship();
+        work_in c = new work_in();
+        c.setProperties(noe4jEdge.asMap());
+        JSONObject edge = new JSONObject();
+        Map<String, Object> map = c.getProperties();
+        Set<String> keySet = map.keySet();
+        Iterator<String> it1 = keySet.iterator();
+        while (it1.hasNext()) {
+            String ID = it1.next();
+            String val = (String) map.get(ID);
+            edge.put(ID,val);
+            System.out.println(ID + " " + val);
+        }
+        edge.put("rela",name);
+        edge.put("type",name);
+        edge.put("source",from.get("id"));
+        edge.put("target",to.get("id"));
+        edges.add(edge);
+        return edge;
+    }
+
+
+        public JSONObject get_code(String question) throws Exception {
         String cypherSql = String.format("match(n:company) where n.c_name=\"%s\" return n",question);
         StatementResult result = session.run(cypherSql);
         JSONObject nodes = new JSONObject();
@@ -83,43 +128,8 @@ public class Driver {
             Record record = result.next();
             for (Value value : record.values()) {
                 System.out.println(value.toString());
-                /**
-                 * 结果里面只要类型为节点的值
-                 */
                 if (value.type().name().equals("NODE")) {
-                    Node noe4jNode = value.asNode();
-                    BaseEntity c;
-                    c = new company();
-                    c.setProperties(noe4jNode.asMap());
-                    Map<String, Object> map = c.getProperties();
-                    Set<String> keySet = map.keySet();
-                    JSONObject node = new JSONObject();
-                    Iterator<String> it1 = keySet.iterator();
-                    while (it1.hasNext()) {
-                        String ID = it1.next();
-                        String val = (String) map.get(ID);
-                        if(ID.equals("code"))
-                            ID = "name";
-                        node.put(ID,val);
-                        System.out.println(ID + " " + val);
-                    }
-                    nodes.put(String.valueOf(noe4jNode.id()),node);
-                }
-                else if(value.type().name().equals("RELATIONSHIP")) {
-                    Relationship noe4jEdge = value.asRelationship();
-                    work_in c = new work_in();
-                    c.setProperties(noe4jEdge.asMap());
-                    JSONObject edge = new JSONObject();
-                    Map<String, Object> map = c.getProperties();
-                    Set<String> keySet = map.keySet();
-                    Iterator<String> it1 = keySet.iterator();
-                    while (it1.hasNext()) {
-                        String ID = it1.next();
-                        String val = (String) map.get(ID);
-                        edge.put(ID,val);
-                        System.out.println(ID + " " + val);
-                    }
-                    edges.add(edge);
+                    addNode(nodes,value,"code","company");
                 }
             }
         }
@@ -132,9 +142,14 @@ public class Driver {
         String cypherSql = String.format("MATCH p=(a:person)-[r:work_in]->(n:company) where n.c_name= \"%s\" RETURN a,r,n",question);
         StatementResult result = session.run(cypherSql);
         JSONObject nodes = new JSONObject();
-        JSONObject edges = new JSONObject();
+        JSONArray edges = new JSONArray();
         JSONObject ret = new JSONObject();
+        JSONObject from = new JSONObject();
+        JSONObject to = new JSONObject();
+        JSONObject rela;
+        Value temp = null;
 
+        boolean flag = false;
 
         while (result.hasNext()) {
             Record record = result.next();
@@ -144,42 +159,24 @@ public class Driver {
                  * 结果里面只要类型为节点的值
                  */
                 if (value.type().name().equals("NODE")) {
-                    Node noe4jNode = value.asNode();
-                    BaseEntity c;
-                    Collection<String> labels = (Collection<String>) noe4jNode.labels();
+                    Collection<String> labels = (Collection<String>) value.asNode().labels();
                     if(labels.contains("company")) {
-                        c = new company();
+                        to = addNode(nodes,value,"c_name","cpmpany");
+                        if(flag = true && temp != null){
+                            addEdge(edges,temp,"work_in",from,to);
+                            flag = false;
+                        }
                     } else {
-                        c = new person();
+                        from = addNode(nodes,value,"p_name","person");
+                        if(flag = true && temp != null){
+                            addEdge(edges,temp,"work_in",from,to);
+                            flag = false;
+                        }
                     }
-                    c.setProperties(noe4jNode.asMap());
-                    Map<String, Object> map = c.getProperties();
-                    Set<String> keySet = map.keySet();
-                    JSONObject node = new JSONObject();
-                    Iterator<String> it1 = keySet.iterator();
-                    while (it1.hasNext()) {
-                        String ID = it1.next();
-                        String val = (String) map.get(ID);
-                        node.put(ID,val);
-                        System.out.println(ID + " " + val);
-                    }
-                    nodes.put(String.valueOf(noe4jNode.id()),node);
                 }
                 else if(value.type().name().equals("RELATIONSHIP")) {
-                    Relationship noe4jEdge = value.asRelationship();
-                    work_in c = new work_in();
-                    c.setProperties(noe4jEdge.asMap());
-                    JSONObject edge = new JSONObject();
-                    Map<String, Object> map = c.getProperties();
-                    Set<String> keySet = map.keySet();
-                    Iterator<String> it1 = keySet.iterator();
-                    while (it1.hasNext()) {
-                        String ID = it1.next();
-                        String val = (String) map.get(ID);
-                        edge.put(ID,val);
-                        System.out.println(ID + " " + val);
-                    }
-                    edges.put(String.valueOf(noe4jEdge.id()),edge);
+                    temp = value;
+                    flag = true;
                 }
             }
         }
