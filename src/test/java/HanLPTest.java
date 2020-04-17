@@ -51,7 +51,7 @@ public class HanLPTest {
 	@Test
 	public void TestC() throws Exception{
 		ModelProcess query = new ModelProcess("/Users/zhaoyiwei/data-kg/data");
-		String[] questionArr = new String[] {"万科企业股份有限公司的代码"};
+		String[] questionArr = new String[] {"陈贤军任职公司的行业"};
 		for(String que: questionArr){
 				ArrayList<String> question = query.analyQuery(que);
 				System.err.println(question);

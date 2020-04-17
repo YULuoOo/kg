@@ -142,6 +142,10 @@ public class ModelProcess {
 				abstractQuery += "noc ";
 				abstractMap.put("noc", word);
 			}
+			else if (termStr.contains("m")) { //m 股票代码
+				abstractQuery += "m ";
+				abstractMap.put("m", word);
+			}
 			else {
 				abstractQuery += word + " ";
 			}
@@ -505,6 +509,22 @@ public class ModelProcess {
 				LabeledPoint train_one = new LabeledPoint(3.0, Vectors.dense(array));
 				train_list.add(train_one);
 			}
+
+			String stockHolderQuestion = loadFile("question/【4】股票股东.txt");
+			sentences = stockHolderQuestion.split("`");
+			for (String sentence : sentences) {
+				double[] array = sentenceToArrays(sentence);
+				LabeledPoint train_one = new LabeledPoint(4.0, Vectors.dense(array));
+				train_list.add(train_one);
+			}
+
+		String personCompanyIndustry = loadFile("question/【5】高管公司行业.txt");
+		sentences = personCompanyIndustry.split("`");
+		for (String sentence : sentences) {
+			double[] array = sentenceToArrays(sentence);
+			LabeledPoint train_one = new LabeledPoint(5.0, Vectors.dense(array));
+			train_list.add(train_one);
+		}
 
 		/**
          * SPARK的核心是RDD(弹性分布式数据集)

@@ -162,20 +162,30 @@ public class QuestionServiceImpl implements QuestionService {
 				System.out.println(title);
 				answer = driver.get_code(title);
 				break;
-//			case 1:
-//				title = reStrings.get(1);
-//				System.out.println(title);
-//				answer.add(companyRepository.getCompanyInfo(title).toString());
-//				break;
-//			case 2:
-//				title = reStrings.get(1);
-//				System.out.println(title);
-//				answer.add(companyRepository.getCompanyEngName(title));
-//				break;
+			case 1:
+				title = reStrings.get(1);
+				System.out.println(title);
+				answer = driver.get_c_info(title);
+				break;
+			case 2:
+				title = reStrings.get(1);
+				System.out.println(title);
+				answer = driver.get_eng(title);
+				break;
 			case 3:
 				title = reStrings.get(1);
 				System.out.println(title);
 				answer = driver.work_in(title);
+				break;
+			case 4:
+				title = reStrings.get(1);
+				System.out.println(title);
+				answer = driver.stock_holder(title);
+				break;
+			case 5:
+				title = reStrings.get(1);
+				System.out.println(title);
+				answer = driver.person_company_industry(title);
 				break;
 			default:
 				break;
