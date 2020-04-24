@@ -145,6 +145,9 @@ public class ModelProcess {
 			else if (termStr.contains("m")) { //m 股票代码
 				abstractQuery += "m ";
 				abstractMap.put("m", word);
+			}else if (termStr.contains("cc")) { //cc concept
+				abstractQuery += "cc ";
+				abstractMap.put("cc", word);
 			}
 			else {
 				abstractQuery += word + " ";
@@ -314,169 +317,7 @@ public class ModelProcess {
 			 */
 			List<LabeledPoint> train_list = new LinkedList<LabeledPoint>();
 			String[] sentences = null;
-			
 
-//			/**
-//			 * 英雄的评分是多少
-//			 */
-//			String scoreQuestions = loadFile("question/【0】评分.txt");
-//			sentences = scoreQuestions.split("`");
-//			for (String sentence : sentences) {
-//				double[] array = sentenceToArrays(sentence);
-//				LabeledPoint train_one = new LabeledPoint(0.0, Vectors.dense(array));
-//				train_list.add(train_one);
-//			}
-//
-//			/**
-//			 * 英雄什么时候上映的
-//			 */
-//			String timeQuestions = loadFile("question/【1】上映.txt");
-//			sentences = timeQuestions.split("`");
-//			for (String sentence : sentences) {
-//				double[] array = sentenceToArrays(sentence);
-//				LabeledPoint train_one = new LabeledPoint(1.0, Vectors.dense(array));
-//				train_list.add(train_one);
-//			}
-//
-//
-//			/**
-//			 * 英雄是什么类型的
-//			 */
-//			String styleQuestions = loadFile("question/【2】风格.txt");
-//			sentences = styleQuestions.split("`");
-//			for (String sentence : sentences) {
-//				double[] array = sentenceToArrays(sentence);
-//				LabeledPoint train_one = new LabeledPoint(2.0, Vectors.dense(array));
-//				train_list.add(train_one);
-//			}
-//
-//
-//			/**
-//			 * 英雄的简介、英雄的剧情是什么
-//			 */
-//			String storyQuestions = loadFile("question/【3】剧情.txt");
-//			sentences = storyQuestions.split("`");
-//			for (String sentence : sentences) {
-//				double[] array = sentenceToArrays(sentence);
-//				LabeledPoint train_one = new LabeledPoint(3.0, Vectors.dense(array));
-//				train_list.add(train_one);
-//			}
-//
-//			/**
-//			 * 英雄有哪些演员出演、出演英雄的演员都有哪些
-//			 */
-//			String actorsQuestion = loadFile("question/【4】某电影有哪些演员出演.txt");
-//			sentences = actorsQuestion.split("`");
-//			for (String sentence : sentences) {
-//				double[] array = sentenceToArrays(sentence);
-//				LabeledPoint train_one = new LabeledPoint(4.0, Vectors.dense(array));
-//				train_list.add(train_one);
-//			}
-//
-//
-//			/**
-//			 * 章子怡
-//			 */
-//			String actorInfos = loadFile("question/【5】演员简介.txt");
-//			sentences = actorInfos.split("`");
-//			for (String sentence : sentences) {
-//				double[] array = sentenceToArrays(sentence);
-//				LabeledPoint train_one = new LabeledPoint(5.0, Vectors.dense(array));
-//				train_list.add(train_one);
-//			}
-//
-//			/**
-//			 * 周星驰出演的科幻类型的电影有哪些
-//			 */
-//			String genreMovies = loadFile("question/【6】某演员出演过的类型电影有哪些.txt");
-//			sentences = genreMovies.split("`");
-//			for (String sentence : sentences) {
-//				double[] array = sentenceToArrays(sentence);
-//				LabeledPoint train_one = new LabeledPoint(6.0, Vectors.dense(array));
-//				train_list.add(train_one);
-//			}
-//
-//
-//			/**
-//			 * 周星驰演了哪些电影
-//			 */
-//			String actorsMovie = loadFile("question/【7】某演员演了什么电影.txt");
-//			sentences = actorsMovie.split("`");
-//			for (String sentence : sentences) {
-//				double[] array = sentenceToArrays(sentence);
-//				LabeledPoint train_one = new LabeledPoint(7.0, Vectors.dense(array));
-//				train_list.add(train_one);
-//			}
-//
-//			/**
-//			 * 巩俐参演的电影评分在8.5分以上的有哪些、巩俐参演的电影评分大于8.5分的有哪些
-//			 */
-//			String highScoreMovies = loadFile("question/【8】演员参演的电影评分【大于】.txt");
-//			sentences = highScoreMovies.split("`");
-//			for (String sentence : sentences) {
-//				double[] array = sentenceToArrays(sentence);
-//				LabeledPoint train_one = new LabeledPoint(8.0, Vectors.dense(array));
-//				train_list.add(train_one);
-//			}
-//
-//
-//			/**
-//			 * 巩俐参演的电影评分在8.5分以下的有哪些、巩俐参演的电影评分小于8.5分的有哪些
-//			 */
-//			String lowScoreMovies = loadFile("question/【9】演员参演的电影评分【小于】.txt");
-//			sentences = lowScoreMovies.split("`");
-//			for (String sentence : sentences) {
-//				double[] array = sentenceToArrays(sentence);
-//				LabeledPoint train_one = new LabeledPoint(9.0, Vectors.dense(array));
-//				train_list.add(train_one);
-//			}
-//
-//
-//			/**
-//			 * 章子怡演过哪些类型的电影
-//			 */
-//			String actorMovieGenres = loadFile("question/【10】某演员出演过哪些类型的电影.txt");
-//			sentences = actorMovieGenres.split("`");
-//			for (String sentence : sentences) {
-//				double[] array = sentenceToArrays(sentence);
-//				LabeledPoint train_one = new LabeledPoint(10.0, Vectors.dense(array));
-//				train_list.add(train_one);
-//			}
-//
-//			/**
-//			 * 章子怡与李连杰合作过哪些电影、章子怡和巩俐一起演过什么电影
-//			 */
-//			String withMovies = loadFile("question/【11】演员A和演员B合作了哪些电影.txt");
-//			sentences = withMovies.split("`");
-//			for (String sentence : sentences) {
-//				double[] array = sentenceToArrays(sentence);
-//				LabeledPoint train_one = new LabeledPoint(11.0, Vectors.dense(array));
-//				train_list.add(train_one);
-//			}
-//
-//
-//			/**
-//			 * 章子怡与李连杰合作过哪些电影、章子怡和巩俐一起演过什么电影
-//			 */
-//			String countMovies = loadFile("question/【12】某演员一共演过多少电影.txt");
-//			sentences = countMovies.split("`");
-//			for (String sentence : sentences) {
-//				double[] array = sentenceToArrays(sentence);
-//				LabeledPoint train_one = new LabeledPoint(12.0, Vectors.dense(array));
-//				train_list.add(train_one);
-//			}
-//
-//
-//			/**
-//			 * 章子怡的生日是多少、章子怡的出生日期是什么时候
-//			 */
-//			String actorBirthdayQuestion = loadFile("question/【13】演员出生日期.txt");
-//			sentences = actorBirthdayQuestion.split("`");
-//			for (String sentence : sentences) {
-//				double[] array = sentenceToArrays(sentence);
-//				LabeledPoint train_one = new LabeledPoint(13.0, Vectors.dense(array));
-//				train_list.add(train_one);
-//			}
 
 			String companyCodeQuestion = loadFile("question/【0】公司代码.txt");
 			sentences = companyCodeQuestion.split("`");
@@ -518,13 +359,21 @@ public class ModelProcess {
 				train_list.add(train_one);
 			}
 
-		String personCompanyIndustry = loadFile("question/【5】高管公司行业.txt");
-		sentences = personCompanyIndustry.split("`");
-		for (String sentence : sentences) {
-			double[] array = sentenceToArrays(sentence);
-			LabeledPoint train_one = new LabeledPoint(5.0, Vectors.dense(array));
-			train_list.add(train_one);
-		}
+			String personCompanyIndustry = loadFile("question/【5】高管公司行业.txt");
+			sentences = personCompanyIndustry.split("`");
+			for (String sentence : sentences) {
+				double[] array = sentenceToArrays(sentence);
+				LabeledPoint train_one = new LabeledPoint(5.0, Vectors.dense(array));
+				train_list.add(train_one);
+			}
+
+			String underwriteConceptIndustry = loadFile("question/【6】公司主承销的股票相同概念.txt");
+			sentences = underwriteConceptIndustry.split("`");
+			for (String sentence : sentences) {
+				double[] array = sentenceToArrays(sentence);
+				LabeledPoint train_one = new LabeledPoint(6.0, Vectors.dense(array));
+				train_list.add(train_one);
+			}
 
 		/**
          * SPARK的核心是RDD(弹性分布式数据集)

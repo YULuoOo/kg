@@ -314,6 +314,7 @@ public class Driver {
         ret.put("edges",edges);
         return ret;
     }
+    //陈贤军任职公司的行业
     public JSONObject person_company_industry(String question) throws Exception {
         String cypherSql = String.format("MATCH p1=(p:person)-[r1:work_in]->(c:company) where p.p_name = \"%s\" with p1,p,r1,c match p2=(c:company)-[r2:c_belong_to]->(i:industry) RETURN p1,p2",question);
         StatementResult result = session.run(cypherSql);
@@ -356,6 +357,64 @@ public class Driver {
                             addNode2(nodes, nodesMap.get(startID), "c_name", "company");
                             addNode2(nodes, nodesMap.get(endID), "i_name", "industry");
                             addEdge2(edges, relationship, "c_belong_to", startID, endID);
+                        }
+                        /**
+                         * asMap 相当于 节点的properties属性信息
+                         */
+//                        System.out.println(
+//                                nodesMap.get(startID).asMap() + "-" + rType + "-"
+//                                        + nodesMap.get(endID).asMap());
+                    }
+                }
+            }
+        }
+        ret.put("nodes",nodes);
+        ret.put("edges",edges);
+        return ret;
+    }
+    //国泰君安证券股份有限公司主承销的股票有新材料概念概念的
+    public JSONObject underwrite_concept_industry(String s1,String s2) throws Exception {
+        String cypherSql = String.format("MATCH p1=(c:company)-[r:is_lead_underwriter_of]->(s:stock), p2=(s:stock)-[r2:have_a_concept]->(co:Concept) where c.c_name = \"%s\" and co.c_name = \"%s\" RETURN p1,p2 LIMIT 25",s1,s2);
+        StatementResult result = session.run(cypherSql);
+        JSONObject nodes = new JSONObject();
+        JSONArray edges = new JSONArray();
+        JSONObject ret = new JSONObject();
+        JSONObject from = new JSONObject();
+        JSONObject to = new JSONObject();
+        JSONObject rela;
+        Value temp = null;
+
+        boolean flag = false;
+        Map<Long, Node> nodesMap = new HashMap<>();
+
+        while (result.hasNext()) {
+            Record record = result.next();
+            for (Value value : record.values()) {
+                //System.out.println(value.toString());
+                if (value.type().name().equals("PATH")) {
+                    Path p = value.asPath();
+                    Iterable<Node> nodess = p.nodes();
+                    for (Node node : nodess) {
+                        nodesMap.put(node.id(), node);
+                    }
+
+                    /**
+                     * 打印最短路径里面的关系 == 关系包括起始节点的ID和末尾节点的ID，以及关系的type类型
+                     */
+                    Iterable<Relationship> relationships = p.relationships();
+                    for (Relationship relationship : relationships) {
+                        Long startID = relationship.startNodeId();
+                        Long endID = relationship.endNodeId();
+                        String rType = relationship.type();
+                        System.out.println("-------"+startID);
+                        if(rType.equals("is_lead_underwriter_of")) {
+                            addNode2(nodes, nodesMap.get(startID), "c_name", "company");
+                            addNode2(nodes, nodesMap.get(endID), "code", "stock");
+                            addEdge2(edges, relationship, "is_lead_underwriter_of", startID, endID);
+                        } else if(rType.equals("have_a_concept")) {
+                            addNode2(nodes, nodesMap.get(startID), "code", "stock");
+                            addNode2(nodes, nodesMap.get(endID), "c_name", "concept");
+                            addEdge2(edges, relationship, "have_a_concept", startID, endID);
                         }
                         /**
                          * asMap 相当于 节点的properties属性信息

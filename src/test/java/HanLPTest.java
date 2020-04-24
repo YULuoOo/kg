@@ -21,21 +21,17 @@ public class HanLPTest {
 
 	@Test
 	public void TestA(){
-		String lineStr = "明天虽然会下雨，但是我还是会看周杰伦的演唱会。";
+		String lineStr = "国泰君安证券股份有限公司主承销的股票中有新材料概念的";
 		try{
 			Segment segment = HanLP.newSegment();
 		    segment.enableCustomDictionary(true);
-		    /**
-		     * 自定义分词+词性
-		     */
-		    CustomDictionary.add("虽然会","ng 0");
 			List<Term> seg = segment.seg(lineStr);
 			for (Term term : seg) {
 				System.out.println(term.toString());
 			}
 		}catch(Exception ex){
 			System.out.println(ex.getClass()+","+ex.getMessage());
-		}		
+		}
 	}
 	@Test
 	public void TestB(){
@@ -45,13 +41,13 @@ public class HanLPTest {
 	    System.out.println(HanLP.segment("爱听4G"));
 	    System.out.println(HanLP.segment("爱听４G"));
 	    System.out.println(HanLP.segment("爱听４Ｇ"));
-	    System.out.println(HanLP.segment("愛聽４Ｇ"));	    
+	    System.out.println(HanLP.segment("愛聽４Ｇ"));
 	}
-	
+
 	@Test
 	public void TestC() throws Exception{
 		ModelProcess query = new ModelProcess("/Users/zhaoyiwei/data-kg/data");
-		String[] questionArr = new String[] {"陈贤军任职公司的行业"};
+		String[] questionArr = new String[] {"国泰君安证券股份有限公司主承销的股票中有新材料概念的"};
 		for(String que: questionArr){
 				ArrayList<String> question = query.analyQuery(que);
 				System.err.println(question);

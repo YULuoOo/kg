@@ -43,6 +43,9 @@ public class QuestionServiceImpl implements QuestionService {
 	@Value("${HanLP.CustomDictionary.path.companyDict}")
 	private String companyDictPath;
 
+	@Value("${HanLP.CustomDictionary.path.conceptDict}")
+	private String conceptDictPath;
+
 	@Autowired
 	private QuestionRepository questionRepository;
 
@@ -65,6 +68,8 @@ public class QuestionServiceImpl implements QuestionService {
 		queryProcess = new ModelProcess(rootDictPath);
 
 		loadCompanyDict(companyDictPath);
+
+		loadConceptDict(conceptDictPath);
 //		/**
 //		 * 加载自定义的电影字典 == 设置词性 nm 0
 //		 */
@@ -148,8 +153,8 @@ public class QuestionServiceImpl implements QuestionService {
 		ArrayList<String> reStrings = queryProcess.analyQuery(question);
 		int modelIndex = Integer.valueOf(reStrings.get(0));
 		JSONObject answer = new JSONObject();
-		String title = "";
-		String code = "";
+		String s1 = "";
+		String s2 = "";
 		/**
 		 * 匹配问题模板
 		 */
@@ -158,34 +163,41 @@ public class QuestionServiceImpl implements QuestionService {
 				/**
 				 * nof 的 代码
 				 */
-				title = reStrings.get(1);
-				System.out.println(title);
-				answer = driver.get_code(title);
+				s1 = reStrings.get(1);
+				System.out.println(s1);
+				answer = driver.get_code(s1);
 				break;
 			case 1:
-				title = reStrings.get(1);
-				System.out.println(title);
-				answer = driver.get_c_info(title);
+				s1 = reStrings.get(1);
+				System.out.println(s1);
+				answer = driver.get_c_info(s1);
 				break;
 			case 2:
-				title = reStrings.get(1);
-				System.out.println(title);
-				answer = driver.get_eng(title);
+				s1 = reStrings.get(1);
+				System.out.println(s1);
+				answer = driver.get_eng(s1);
 				break;
 			case 3:
-				title = reStrings.get(1);
-				System.out.println(title);
-				answer = driver.work_in(title);
+				s1 = reStrings.get(1);
+				System.out.println(s1);
+				answer = driver.work_in(s1);
 				break;
 			case 4:
-				title = reStrings.get(1);
-				System.out.println(title);
-				answer = driver.stock_holder(title);
+				s1 = reStrings.get(1);
+				System.out.println(s1);
+				answer = driver.stock_holder(s1);
 				break;
 			case 5:
-				title = reStrings.get(1);
-				System.out.println(title);
-				answer = driver.person_company_industry(title);
+				s1 = reStrings.get(1);
+				System.out.println(s1);
+				answer = driver.person_company_industry(s1);
+				break;
+			case 6:
+				s1 = reStrings.get(1);
+				s2 = reStrings.get(2);
+
+				System.out.println(s1+" "+s2);
+				answer = driver.underwrite_concept_industry(s1,s2);
 				break;
 			default:
 				break;
@@ -426,6 +438,19 @@ public class QuestionServiceImpl implements QuestionService {
 
 	}
 
+	public void loadConceptDict(String path) {
+
+		File file = new File(path);
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new FileReader(file));
+			addCustomDictionary(br, 5);
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		}
+
+	}
+
 	/**
 	 * 加载自定义电影字典
 	 *
@@ -513,6 +538,9 @@ public class QuestionServiceImpl implements QuestionService {
 				 */
 				case 4:
 					CustomDictionary.add(word, "noc 0");
+					break;
+				case 5:
+					CustomDictionary.add(word, "cc 0");
 					break;
 				default:
 					break;
