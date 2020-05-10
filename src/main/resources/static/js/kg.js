@@ -89,9 +89,9 @@ initKG = function (data, config, container) {
         links.forEach(function (link) {
             //利用source和target名称进行连线以及节点的确认
             link.source = nodeDict[link.source]
-            nodes[link.source.name] = link.source
+            nodes[link.source.id] = link.source
             link.target = nodeDict[link.target]
-            nodes[link.target.name] = link.target
+            nodes[link.target.id] = link.target
         });}
         else {
             data.links = {};
@@ -286,7 +286,7 @@ initKG = function (data, config, container) {
             //再次点击还原
             edges_line.style("stroke-width", function (line) {
                 //当与连接点连接时变粗
-                if ((line.source.name == node.name || line.target.name == node.name) ) {
+                if ((line.source.id == node.id || line.target.id == node.id) ) {
                     if (line.focus && node.focus){
                         line.focus = false;
                         return 1;

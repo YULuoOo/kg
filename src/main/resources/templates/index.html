@@ -297,7 +297,7 @@
                     type: "POST",
                     dataType: "json",
                     async:false,
-                    url : '/rest/appleyk/question/d?question='+document.getElementById("t1").value,
+                    url : '/KnowledgeGraph/question?question='+document.getElementById("t1").value,
                     data: data.field,
                     success: function(ret){
                         console.log(ret);

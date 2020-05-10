@@ -11,7 +11,7 @@ import org.apache.spark.mllib.linalg.Vectors;
 import org.apache.spark.mllib.regression.LabeledPoint;
 import org.junit.Test;
 
-import com.appleyk.process.ModelProcess;
+import com.kg.process.ModelProcess;
 import com.hankcs.hanlp.HanLP;
 import com.hankcs.hanlp.dictionary.CustomDictionary;
 import com.hankcs.hanlp.seg.Segment;
@@ -47,7 +47,7 @@ public class HanLPTest {
 	@Test
 	public void TestC() throws Exception{
 		ModelProcess query = new ModelProcess("/Users/zhaoyiwei/data-kg/data");
-		String[] questionArr = new String[] {"国泰君安证券股份有限公司主承销的股票中有新材料概念的"};
+		String[] questionArr = new String[] {"陈贤军任职公司的行业"};
 		for(String que: questionArr){
 				ArrayList<String> question = query.analyQuery(que);
 				System.err.println(question);
