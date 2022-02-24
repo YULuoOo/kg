@@ -7,7 +7,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 
-@Configuration
+//启动类
 @EnableNeo4jRepositories
 @SpringBootApplication // same as @Configuration @EnableAutoConfiguration// @ComponentScan
 public class Application extends SpringBootServletInitializer {

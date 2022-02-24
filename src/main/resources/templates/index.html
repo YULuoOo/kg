@@ -301,7 +301,6 @@
                     data: data.field,
                     success: function(ret){
                         console.log(ret);
-
                         data.nodes = (ret.nodes);
                         data.links = (ret.edges);
                         console.log(data.nodes);
@@ -313,25 +312,6 @@
                         alert(XMLHttpRequest.readyState + XMLHttpRequest.status + XMLHttpRequest.responseText);
                     }
                 })
-
-<!--                $.ajax({-->
-<!--                    type: "POST",-->
-<!--                    dataType: "text",-->
-<!--                    async:false,-->
-<!--				    url : '/rest/appleyk/question/edge',-->
-<!--                    data: data.field,-->
-<!--                    success: function(res){-->
-<!--                        console.log(res);-->
-<!--                        data.links = JSON.parse(res);-->
-<!--                        st2 = true;-->
-<!--                    },-->
-<!--                    error: function(XMLHttpRequest, textStatus, errorThrown){-->
-<!--                        alert(XMLHttpRequest.readyState + XMLHttpRequest.status + XMLHttpRequest.responseText);-->
-<!--                    }-->
-<!--                })-->
-                //data.nodes = JSON.parse(document.getElementById("t1").value);
-                //data.links = JSON.parse(document.getElementById("t2").value);
-                //console.log(JSON.parse(t1_text));
                 var config = {
                     //鼠标mouseover后的弹窗
                     //content: document.getElementById("t5").value,
@@ -344,11 +324,7 @@
                     height: document.getElementById("container").clientHeight
                 }
                 if(st1){
-                    console.log(data.nodes);
-                    console.log(data.links);
-
                     st1 = false;
-<!--                    st2 = false;-->
                     initKG(data, config, "#container");
                 }
             } catch (err) {

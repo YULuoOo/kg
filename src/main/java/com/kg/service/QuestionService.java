@@ -9,7 +9,6 @@ public interface QuestionService {
 	  void showDictPath();
 	  int init() throws Exception;
 	  String answer(String question) throws Exception;
-	 List<String> answer2(String question) throws Exception;
 	JSONObject question(String question) throws Exception;
 
 }

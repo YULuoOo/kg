@@ -7,10 +7,10 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import java.util.Map;
 
 /**
- * 抽取共同的属性字段
+ * 基础节点
  */
 @JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="id")
-public abstract class BaseEntity {
+public class BaseEntity {
 
 	/**
 	 * Neo4j会分配的ID（节点唯一标识 当前类中有效）

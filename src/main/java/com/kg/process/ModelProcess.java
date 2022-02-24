@@ -25,41 +25,36 @@ import org.apache.spark.mllib.tree.model.DecisionTreeModel;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 
-/**
- * Spark贝叶斯分类器 + HanLP分词器 + 实现问题语句的抽象+模板匹配+关键性语句还原
- * @blob   http://blog.csdn.net/appleyk
- * @date   2018年5月9日-上午10:07:52
- */
 public class ModelProcess {
 
-	
+
 	/**
 	 * 分类标签号和问句模板对应表
 	 */
-	Map<Double, String> questionsPattern; 
-	
+	Map<Double, String> questionsPattern;
+
 	/**
 	 * Spark贝叶斯分类器
 	 */
 	NaiveBayesModel nbModel;
 
 	DecisionTreeModel dtModel;
-	
+
 	/**
 	 * 词语和下标的对应表   == 词汇表
 	 */
-	Map<String, Integer> vocabulary; 
-	
+	Map<String, Integer> vocabulary;
+
 	/**
 	 * 关键字与其词性的map键值对集合 == 句子抽象
 	 */
 	Map<String, String> abstractMap;
-	
+
 	/**
 	 * 指定问题question及字典的txt模板所在的根目录
 	 */
     String rootDirPath = "/Users/zhaoyiwei/data-kg/data";
-    
+
     /**
      * 分类模板索引
      */
@@ -69,9 +64,9 @@ public class ModelProcess {
 		questionsPattern = loadQuestionsPattern();
 		vocabulary = loadVocabulary();
 		nbModel = loadClassifierModel();
-	}	
-	
-	
+	}
+
+
 	public ModelProcess(String rootDirPath) throws Exception{
 		this.rootDirPath = rootDirPath+'/';
 		questionsPattern = loadQuestionsPattern();
@@ -79,35 +74,35 @@ public class ModelProcess {
 		nbModel = loadClassifierModel();
 		//dtModel = load();
 	}
-	
+
 	public ArrayList<String> analyQuery(String queryString) throws Exception {
-		
+
 		/**
 		 * 打印问句
 		 */
 		System.out.println("原始句子："+queryString);
 		System.out.println("========HanLP开始分词========");
-		
+
 		/**
 		 * 抽象句子，利用HanPL分词，将关键字进行词性抽象
 		 */
-		String abstr = queryAbstract(queryString);	
+		String abstr = queryAbstract(queryString);
 		System.out.println("句子抽象化结果："+abstr);// nm 的 导演 是 谁
-		
+
 		/**
 		 * 将抽象的句子与spark训练集中的模板进行匹配，拿到句子对应的模板
 		 */
 		String strPatt = queryClassify(abstr);
 		System.out.println("句子套用模板结果："+strPatt); // nm 制作 导演列表
-		
-		
+
+
 		/**
 		 * 模板还原成句子，此时问题已转换为我们熟悉的操作
 		 */
 		String finalPattern = queryExtenstion(strPatt);
 		System.out.println("原始句子替换成系统可识别的结果："+finalPattern);// 但丁密码 制作 导演列表
-		
-		
+
+
 		ArrayList<String> resultList = new ArrayList<String>();
 		resultList.add(String.valueOf(modelIndex));
 		String[] finalPattArray = finalPattern.split(" ");
@@ -128,10 +123,7 @@ public class ModelProcess {
 			String word = term.word;
 			String termStr = term.toString();
 			System.out.println(termStr);
-			if (termStr.contains("nm")) {        //nm 电影名
-				abstractQuery += "nm ";
-				abstractMap.put("nm", word);
-			} else if (termStr.contains("nr") && nrCount == 0) { //nr 人名
+			if (termStr.contains("nr") && nrCount == 0) { //nr 人名
 				abstractQuery += "nnt ";
 				abstractMap.put("nnt", word);
 				nrCount++;
@@ -139,9 +131,6 @@ public class ModelProcess {
 				abstractQuery += "nnr ";
 				abstractMap.put("nnr", word);
 				nrCount++;
-			}else if (termStr.contains("x")) {  //x  评分
-				abstractQuery += "x ";
-				abstractMap.put("x", word);
 			} else if (termStr.contains("ng")) { //ng 类型
 				abstractQuery += "ng ";
 				abstractMap.put("ng", word);
@@ -156,6 +145,10 @@ public class ModelProcess {
 			}else if (termStr.contains("cc")) { //cc concept
 				abstractQuery += "cc ";
 				abstractMap.put("cc", word);
+			}
+			else if (termStr.contains("pr")) { //pr product
+				abstractQuery += "pr ";
+				abstractMap.put("pr", word);
 			}
 			else {
 				abstractQuery += word + " ";
@@ -174,9 +167,9 @@ public class ModelProcess {
 			 * 如果句子模板中含有抽象的词性
 			 */
 			if (queryPattern.contains(key)) {
-				
+
 				/**
-				 * 则替换抽象词性为具体的值 
+				 * 则替换抽象词性为具体的值
 				 */
 				String value = abstractMap.get(key);
 				queryPattern = queryPattern.replace(key, value);
@@ -191,7 +184,7 @@ public class ModelProcess {
 		return extendedQuery;
 	}
 
-	
+
 	/**
 	 * 加载词汇表 == 关键特征 == 与HanLP分词后的单词进行匹配
 	 * @return
@@ -252,7 +245,7 @@ public class ModelProcess {
 	 * @throws Exception
 	 */
 	public  double[] sentenceToArrays(String sentence) throws Exception {
-		
+
 		double[] vector = new double[vocabulary.size()];
 		/**
 		 * 模板对照词汇表的大小进行初始化，全部为0.0
@@ -260,7 +253,7 @@ public class ModelProcess {
 		for (int i = 0; i < vocabulary.size(); i++) {
 			vector[i] = 0;
 		}
-		
+
 		/**
 		 * HanLP分词，拿分词的结果和词汇表里面的关键特征进行匹配
 		 */
@@ -283,132 +276,107 @@ public class ModelProcess {
 
 	/**
 	 * Spark朴素贝叶斯(naiveBayes)
-	 * 对特定的模板进行加载并分类
-	 * 欲了解Spark朴素贝叶斯，可参考地址：https://blog.csdn.net/appleyk/article/details/80348912
 	 * @return
 	 * @throws Exception
 	 */
 	public  NaiveBayesModel loadClassifierModel() throws Exception {
-		
-			/**
-			 * 生成Spark对象
-			 * 一、Spark程序是通过SparkContext发布到Spark集群的
-			 * Spark程序的运行都是在SparkContext为核心的调度器的指挥下进行的
-			 * Spark程序的结束是以SparkContext结束作为结束
-			 * JavaSparkContext对象用来创建Spark的核心RDD的
-			 * 注意：第一个RDD,一定是由SparkContext来创建的
-			 * 
-			 * 二、SparkContext的主构造器参数为 SparkConf
-			 * SparkConf必须设置appname和master，否则会报错
-			 * spark.master   用于设置部署模式   
-			 * local[*] == 本地运行模式[也可以是集群的形式]，如果需要多个线程执行，可以设置为local[2],表示2个线程 ，*表示多个
-			 * spark.app.name 用于指定应用的程序名称  == 
-			 */
-		
-		    /**
-		     * 题外话
-		     * 贝叶斯是谁？
-		     * 贝叶斯(约1701-1763) Thomas Bayes，英国数学家。
-		     * 1702年出生于伦敦，做过神甫。
-		     * 1742年成为英国皇家学会会员。
-		     * 1763年4月7日逝世。
-		     * 贝叶斯在数学方面主要研究概率论 == 贝叶斯公式是概率论中较为重要的公式
-		     */
-			SparkConf conf = new SparkConf().setAppName("NaiveBayesTest").setMaster("local[*]");
-			JavaSparkContext sc = new JavaSparkContext(conf);
+		SparkConf conf = new SparkConf().setAppName("NaiveBayesTest").setMaster("local[*]");
+		conf.set("spark.driver.allowMultipleContexts","true");
+		JavaSparkContext sc = new JavaSparkContext(conf);
 
-			/**
-			 * 训练集生成
-			 * labeled point 是一个局部向量，要么是密集型的要么是稀疏型的
-			 * 用一个label/response进行关联。在MLlib里，labeled points 被用来监督学习算法
-			 * 我们使用一个double数来存储一个label，因此我们能够使用labeled points进行回归和分类
-			 */
-			List<LabeledPoint> train_list = new LinkedList<LabeledPoint>();
-			String[] sentences = null;
-
-
-			String companyCodeQuestion = loadFile("question/【0】公司代码.txt");
-			sentences = companyCodeQuestion.split("`");
-			for (String sentence : sentences) {
-				double[] array = sentenceToArrays(sentence);
-				LabeledPoint train_one = new LabeledPoint(0.0, Vectors.dense(array));
-				train_list.add(train_one);
-			}
-
-			String companyInfoQuestion = loadFile("question/【1】公司信息.txt");
-			sentences = companyInfoQuestion.split("`");
-			for (String sentence : sentences) {
-				double[] array = sentenceToArrays(sentence);
-				LabeledPoint train_one = new LabeledPoint(1.0, Vectors.dense(array));
-				train_list.add(train_one);
-			}
-
-			String companyEnglishNameQuestion = loadFile("question/【2】公司英文名.txt");
-			sentences = companyEnglishNameQuestion.split("`");
-			for (String sentence : sentences) {
-				double[] array = sentenceToArrays(sentence);
-				LabeledPoint train_one = new LabeledPoint(2.0, Vectors.dense(array));
-				train_list.add(train_one);
-			}
-
-			String companyPersonQuestion = loadFile("question/【3】公司高管.txt");
-			sentences = companyPersonQuestion.split("`");
-			for (String sentence : sentences) {
-				double[] array = sentenceToArrays(sentence);
-				LabeledPoint train_one = new LabeledPoint(3.0, Vectors.dense(array));
-				train_list.add(train_one);
-			}
-
-			String stockHolderQuestion = loadFile("question/【4】股票股东.txt");
-			sentences = stockHolderQuestion.split("`");
-			for (String sentence : sentences) {
-				double[] array = sentenceToArrays(sentence);
-				LabeledPoint train_one = new LabeledPoint(4.0, Vectors.dense(array));
-				train_list.add(train_one);
-			}
-
-			String personCompanyIndustry = loadFile("question/【5】高管公司行业.txt");
-			sentences = personCompanyIndustry.split("`");
-			for (String sentence : sentences) {
-				double[] array = sentenceToArrays(sentence);
-				LabeledPoint train_one = new LabeledPoint(5.0, Vectors.dense(array));
-				train_list.add(train_one);
-			}
-
-			String underwriteConceptIndustry = loadFile("question/【6】公司主承销的股票相同概念.txt");
-			sentences = underwriteConceptIndustry.split("`");
-			for (String sentence : sentences) {
-				double[] array = sentenceToArrays(sentence);
-				LabeledPoint train_one = new LabeledPoint(6.0, Vectors.dense(array));
-				train_list.add(train_one);
-			}
-
-			String businessIncome = loadFile("question/【7】业务收入率最高.txt");
-			sentences = businessIncome.split("`");
-			for (String sentence : sentences) {
-				double[] array = sentenceToArrays(sentence);
-				LabeledPoint train_one = new LabeledPoint(7.0, Vectors.dense(array));
-				train_list.add(train_one);
-			}
+		//生成训练集
+		List<LabeledPoint> train_list = new LinkedList<LabeledPoint>();
+		String[] sentences = null;
 		/**
-         * SPARK的核心是RDD(弹性分布式数据集)
-         * Spark是Scala写的,JavaRDD就是Spark为Java写的一套API
-         * JavaSparkContext sc = new JavaSparkContext(sparkConf);    //对应JavaRDD
-         * SparkContext	    sc = new SparkContext(sparkConf)    ;    //对应RDD
-         */
-			JavaRDD<LabeledPoint> trainingRDD = sc.parallelize(train_list);
-			NaiveBayesModel nb_model = NaiveBayes.train(trainingRDD.rdd());
+		 * 加载已经设置好的问题模版
+		 */
 
-			/**
-			 * 记得关闭资源
-			 */
-			sc.close();
+		String companyCodeQuestion = loadFile("question/【0】公司代码.txt");
+		sentences = companyCodeQuestion.split("`");
+		for (String sentence : sentences) {
+			double[] array = sentenceToArrays(sentence);
+			LabeledPoint train_one = new LabeledPoint(0.0, Vectors.dense(array));
+			train_list.add(train_one);
+		}
 
-			/**
-			 * 返回贝叶斯分类器
-			 */
-			return nb_model;
+		String companyInfoQuestion = loadFile("question/【1】公司信息.txt");
+		sentences = companyInfoQuestion.split("`");
+		for (String sentence : sentences) {
+			double[] array = sentenceToArrays(sentence);
+			LabeledPoint train_one = new LabeledPoint(1.0, Vectors.dense(array));
+			train_list.add(train_one);
+		}
 
+		String companyEnglishNameQuestion = loadFile("question/【2】公司英文名.txt");
+		sentences = companyEnglishNameQuestion.split("`");
+		for (String sentence : sentences) {
+			double[] array = sentenceToArrays(sentence);
+			LabeledPoint train_one = new LabeledPoint(2.0, Vectors.dense(array));
+			train_list.add(train_one);
+		}
+
+		String companyPersonQuestion = loadFile("question/【3】公司高管.txt");
+		sentences = companyPersonQuestion.split("`");
+		for (String sentence : sentences) {
+			double[] array = sentenceToArrays(sentence);
+			LabeledPoint train_one = new LabeledPoint(3.0, Vectors.dense(array));
+			train_list.add(train_one);
+		}
+
+		String stockHolderQuestion = loadFile("question/【4】股票股东.txt");
+		sentences = stockHolderQuestion.split("`");
+		for (String sentence : sentences) {
+			double[] array = sentenceToArrays(sentence);
+			LabeledPoint train_one = new LabeledPoint(4.0, Vectors.dense(array));
+			train_list.add(train_one);
+		}
+
+		String personCompanyIndustry = loadFile("question/【5】高管公司行业.txt");
+		sentences = personCompanyIndustry.split("`");
+		for (String sentence : sentences) {
+			double[] array = sentenceToArrays(sentence);
+			LabeledPoint train_one = new LabeledPoint(5.0, Vectors.dense(array));
+			train_list.add(train_one);
+		}
+
+		String underwriteConceptIndustry = loadFile("question/【6】公司主承销的股票相同概念.txt");
+		sentences = underwriteConceptIndustry.split("`");
+		for (String sentence : sentences) {
+			double[] array = sentenceToArrays(sentence);
+			LabeledPoint train_one = new LabeledPoint(6.0, Vectors.dense(array));
+			train_list.add(train_one);
+		}
+
+		String businessIncome = loadFile("question/【7】业务收入率最高.txt");
+		sentences = businessIncome.split("`");
+		for (String sentence : sentences) {
+			double[] array = sentenceToArrays(sentence);
+			LabeledPoint train_one = new LabeledPoint(7.0, Vectors.dense(array));
+			train_list.add(train_one);
+		}
+
+		String ss = loadFile("question/【8】同一天上市的股票.txt");
+		sentences = ss.split("`");
+		for (String sentence : sentences) {
+			double[] array = sentenceToArrays(sentence);
+			LabeledPoint train_one = new LabeledPoint(8.0, Vectors.dense(array));
+			train_list.add(train_one);
+		}
+
+		String ss1 = loadFile("question/【9】拥有产品地区相同.txt");
+		sentences = ss1.split("`");
+		for (String sentence : sentences) {
+			double[] array = sentenceToArrays(sentence);
+			LabeledPoint train_one = new LabeledPoint(9.0, Vectors.dense(array));
+			train_list.add(train_one);
+		}
+
+		JavaRDD<LabeledPoint> trainingRDD = sc.parallelize(train_list);
+		NaiveBayesModel nb_model = NaiveBayes.train(trainingRDD.rdd());
+		//关闭资源
+		sc.close();
+		//返回分类器模型
+		return nb_model;
 	}
 
 	public  DecisionTreeModel load() throws Exception {

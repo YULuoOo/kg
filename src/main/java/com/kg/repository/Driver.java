@@ -3,8 +3,7 @@ package com.kg.repository;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.kg.node.BaseEntity;
-import com.kg.node.company;
-import com.kg.relationship.work_in;
+import com.kg.relationship.BaseRelationship;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
@@ -15,9 +14,6 @@ import org.neo4j.driver.v1.types.Relationship;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Repository
@@ -25,51 +21,10 @@ public class Driver {
     @Autowired
     private Session session;
 
-    public static <T> T map2Object(Map<String, Object> map, Class<T> clazz) {
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-        if (map == null) {
-            return null;
-        }
-        T obj = null;
-        try {
-            // 使用newInstance来创建对象
-            obj = clazz.newInstance();
-            // 获取类中的所有字段
-            Field[] fields = obj.getClass().getDeclaredFields();
-            for (Field field : fields) {
-                int mod = field.getModifiers();
-                // 判断是拥有某个修饰符
-                if (Modifier.isStatic(mod) || Modifier.isFinal(mod)) {
-                    continue;
-                }
-                // 当字段使用private修饰时，需要加上
-                field.setAccessible(true);
-                // 获取参数类型名字
-                String filedTypeName = field.getType().getName();
-                // 判断是否为时间类型，使用equalsIgnoreCase比较字符串，不区分大小写
-                // 给obj的属性赋值
-                if (filedTypeName.equalsIgnoreCase("java.util.date")) {
-                    String datetimestamp = (String) map.get(field.getName());
-                    if (datetimestamp.equalsIgnoreCase("null")) {
-                        field.set(obj, null);
-                    } else {
-                        field.set(obj, sdf.parse(datetimestamp));
-                    }
-                } else {
-                    field.set(obj, map.get(field.getName()));
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return obj;
-    }
 
     public JSONObject addNode(JSONObject nodes,Value value,String name,String type){
         Node noe4jNode = value.asNode();
-        BaseEntity c = new company();
+        BaseEntity c = new BaseEntity();
         c.setProperties(noe4jNode.asMap());
         Map<String, Object> map = c.getProperties();
         Set<String> keySet = map.keySet();
@@ -90,7 +45,7 @@ public class Driver {
     }
 
     public JSONObject addNode2(JSONObject nodes,Node noe4jNode,String name,String type){
-        BaseEntity c = new company();
+        BaseEntity c = new BaseEntity();
         c.setProperties(noe4jNode.asMap());
         Map<String, Object> map = c.getProperties();
         Set<String> keySet = map.keySet();
@@ -112,7 +67,7 @@ public class Driver {
 
     public JSONObject addEdge(JSONArray edges,Value value,String name,JSONObject from,JSONObject to){
         Relationship noe4jEdge = value.asRelationship();
-        work_in c = new work_in();
+        BaseRelationship c = new BaseRelationship();
         c.setProperties(noe4jEdge.asMap());
         JSONObject edge = new JSONObject();
         Map<String, Object> map = c.getProperties();
@@ -133,7 +88,7 @@ public class Driver {
     }
 
     public JSONObject addEdge2(JSONArray edges,Relationship noe4jEdge,String name,Long from,Long to){
-        work_in c = new work_in();
+        BaseRelationship c = new BaseRelationship();
         c.setProperties(noe4jEdge.asMap());
         JSONObject edge = new JSONObject();
         Map<String, Object> map = c.getProperties();
@@ -353,6 +308,7 @@ public class Driver {
         return ret;
     }
     //国泰君安证券股份有限公司主承销的股票有新材料概念概念的
+    //中国工商银行股份有限公司主承销的有锂电池概念的股票
     public JSONObject underwrite_concept_industry(String s1,String s2) throws Exception {
         String cypherSql = String.format("MATCH p1=(c:company)-[r:is_lead_underwriter_of]->(s:stock), p2=(s:stock)-[r2:have_a_concept]->(co:Concept) where c.c_name = \"%s\" and co.c_name = \"%s\" RETURN p1,p2 LIMIT 25",s1,s2);
         StatementResult result = session.run(cypherSql);
@@ -424,6 +380,84 @@ public class Driver {
                             addNode2(nodes, nodesMap.get(startID), "c_name", "company");
                             addNode2(nodes, nodesMap.get(endID), "b_name", "business");
                             addEdge2(edges, relationship, "最高为"+str2+str1, startID, endID);
+                        }
+                    }
+                }
+            }
+        }
+        ret.put("nodes",nodes);
+        ret.put("edges",edges);
+        return ret;
+    }
+    //002967股票上市日期为同一天的有
+    public JSONObject same_date_shangshi(String s1) throws Exception {
+        String cypherSql = String.format("MATCH p1=(a:stock)-[r:`上市日期为`]->(b:`日期`),p2=(a2:stock)-[r2:`上市日期为`]->(b2:`日期`) where a.code = \"%s\" and b.name = b2.name  RETURN p1,p2 ",s1);
+        StatementResult result = session.run(cypherSql);
+        JSONObject nodes = new JSONObject();
+        JSONArray edges = new JSONArray();
+        JSONObject ret = new JSONObject();
+        Map<Long, Node> nodesMap = new HashMap<>();
+
+        while (result.hasNext()) {
+            Record record = result.next();
+            for (Value value : record.values()) {
+                if (value.type().name().equals("PATH")) {
+                    Path p = value.asPath();
+                    Iterable<Node> nodess = p.nodes();
+                    for (Node node : nodess) {
+                        nodesMap.put(node.id(), node);
+                    }
+                    Iterable<Relationship> relationships = p.relationships();
+                    for (Relationship relationship : relationships) {
+                        Long startID = relationship.startNodeId();
+                        Long endID = relationship.endNodeId();
+                        String rType = relationship.type();
+                        System.out.println("-------"+startID);
+                        if(rType.equals("上市日期为")) {
+                            addNode2(nodes, nodesMap.get(startID), "code", "stock");
+                            addNode2(nodes, nodesMap.get(endID), "name", "日期");
+                            addEdge2(edges, relationship, "上市日期为", startID, endID);
+                        }
+                    }
+                }
+            }
+        }
+        ret.put("nodes",nodes);
+        ret.put("edges",edges);
+        return ret;
+    }
+    //在相同省份都拥有LED产品的公司
+    public JSONObject product_same_position(String s1) throws Exception {
+        String cypherSql = String.format("MATCH p1=(t1)-[rr:`位于`]-(g:公司)-[r1:`拥有产品`]-(p:产品),p2=(t2)-[rr2:`位于`]-(g2:公司)-[r2:`拥有产品`]-(p:产品) where t1.name = t2.name and p.name = \"%s\" RETURN p1,p2 ",s1);
+        StatementResult result = session.run(cypherSql);
+        JSONObject nodes = new JSONObject();
+        JSONArray edges = new JSONArray();
+        JSONObject ret = new JSONObject();
+        Map<Long, Node> nodesMap = new HashMap<>();
+
+        while (result.hasNext()) {
+            Record record = result.next();
+            for (Value value : record.values()) {
+                if (value.type().name().equals("PATH")) {
+                    Path p = value.asPath();
+                    Iterable<Node> nodess = p.nodes();
+                    for (Node node : nodess) {
+                        nodesMap.put(node.id(), node);
+                    }
+                    Iterable<Relationship> relationships = p.relationships();
+                    for (Relationship relationship : relationships) {
+                        Long startID = relationship.startNodeId();
+                        Long endID = relationship.endNodeId();
+                        String rType = relationship.type();
+                        System.out.println("-------"+startID);
+                        if(rType.equals("位于")) {
+                            addNode2(nodes, nodesMap.get(startID), "name", "公司");
+                            addNode2(nodes, nodesMap.get(endID), "name", "地区");
+                            addEdge2(edges, relationship, "位于", startID, endID);
+                        }else if(rType.equals("拥有产品")) {
+                            addNode2(nodes, nodesMap.get(startID), "name", "公司");
+                            addNode2(nodes, nodesMap.get(endID), "那么", "产品");
+                            addEdge2(edges, relationship, "拥有产品", startID, endID);
                         }
                     }
                 }
